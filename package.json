@@ -34,7 +34,7 @@
     "lint:main": "eslint packages/main --ext js,ts,jsx,tsx",
     "lint:preload": "eslint packages/preload --ext js,ts,jsx,tsx",
     "lint:renderer": "eslint packages/renderer --ext js,ts,jsx,tsx",
-    "tsc": "yarn typecheck:main && yarn typecheck:preload && yarn typecheck:renderer",
+    "tsc": "yarn tsc:main && yarn tsc:preload && yarn tsc:renderer",
     "tsc:main": "tsc --noEmit -p packages/main/tsconfig.json",
     "tsc:preload": "tsc --noEmit -p packages/preload/tsconfig.json",
     "tsc:renderer": "tsc --noEmit -p packages/renderer/tsconfig.json"
