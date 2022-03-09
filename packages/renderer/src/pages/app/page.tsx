@@ -1,11 +1,11 @@
 import { lazy, Suspense } from 'react';
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
-import { Home } from '/@/pages';
-import { Navigation } from '/@/components';
-import ReactLogo from '/@/../assets/logo.svg';
+import { Home } from '../../pages';
+import { Navigation } from '../../components';
+import ReactLogo from '../../../assets/logo.svg';
 import './app.scss';
 
-const About = lazy(() => import('/@/pages/about').then((module) => ({ default: module.About })));
+const About = lazy(() => import('../../pages/about').then((module) => ({ default: module.About })));
 
 export const App = (): JSX.Element => {
   return (
