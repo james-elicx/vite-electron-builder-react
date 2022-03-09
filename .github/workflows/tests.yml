@@ -20,7 +20,6 @@ defaults:
     shell: 'bash'
 
 jobs:
-
   main:
     runs-on: ubuntu-latest
     steps:
@@ -28,10 +27,9 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: 16
-          cache: 'npm'
-      - run: npm ci
-      - run: npm run test:main
-
+          cache: 'yarn'
+      - run: yarn install --immutable
+      - run: yarn test:main
 
   preload:
     runs-on: ubuntu-latest
@@ -40,10 +38,9 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: 16
-          cache: 'npm'
-      - run: npm ci
-      - run: npm run test:preload
-
+          cache: 'yarn'
+      - run: yarn install --immutable
+      - run: yarn test:preload
 
   renderer:
     runs-on: ubuntu-latest
@@ -52,28 +49,27 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: 16
-          cache: 'npm'
-      - run: npm ci
-      - run: npm run test:renderer
-
+          cache: 'yarn'
+      - run: yarn install --immutable
+      - run: yarn test:renderer
 
   e2e:
     strategy:
       fail-fast: false
       matrix:
-        os: [ windows-latest, ubuntu-latest, macos-latest ]
+        os: [windows-latest, ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
           node-version: 16
-          cache: 'npm'
-      - run: npm ci
+          cache: 'yarn'
+      - run: yarn install --immutable
         env:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
       - run: npx playwright install --with-deps chromium
-      - run: xvfb-run --auto-servernum --server-args="-screen 0 1280x960x24" -- npm run test:e2e
+      - run: xvfb-run --auto-servernum --server-args="-screen 0 1280x960x24" -- yarn test:e2e
         if: matrix.os == 'ubuntu-latest'
-      - run: npm run test:e2e
+      - run: yarn test:e2e
         if: matrix.os != 'ubuntu-latest'

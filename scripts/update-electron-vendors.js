@@ -1,5 +1,5 @@
-const {writeFile} = require('fs/promises');
-const {execSync} = require('child_process');
+const { writeFile } = require('fs/promises');
+const { execSync } = require('child_process');
 const electron = require('electron');
 const path = require('path');
 
@@ -12,7 +12,7 @@ const path = require('path');
  */
 function getVendors() {
   const output = execSync(`${electron} -p "JSON.stringify(process.versions)"`, {
-    env: {'ELECTRON_RUN_AS_NODE': '1'},
+    env: { ELECTRON_RUN_AS_NODE: '1' },
     encoding: 'utf-8',
   });
 
@@ -23,23 +23,28 @@ function updateVendors() {
   const electronRelease = getVendors();
 
   const nodeMajorVersion = electronRelease.node.split('.')[0];
-  const chromeMajorVersion = electronRelease.v8.split('.').splice(0, 2).join('');
+  const chromeMajorVersion = electronRelease.v8.split('.')[0] + electronRelease.v8.split('.')[1];
 
   const browserslistrcPath = path.resolve(process.cwd(), '.browserslistrc');
 
   return Promise.all([
-    writeFile('./.electron-vendors.cache.json',
-      JSON.stringify({
-        chrome: chromeMajorVersion,
-        node: nodeMajorVersion,
-      }, null, 2) + '\n',
+    writeFile(
+      './.electron-vendors.cache.json',
+      JSON.stringify(
+        {
+          chrome: chromeMajorVersion,
+          node: nodeMajorVersion,
+        },
+        null,
+        2,
+      ) + '\n',
     ),
 
     writeFile(browserslistrcPath, `Chrome ${chromeMajorVersion}\n`, 'utf8'),
   ]);
 }
 
-updateVendors().catch(err => {
+updateVendors().catch((err) => {
   console.error(err);
   process.exit(1);
 });

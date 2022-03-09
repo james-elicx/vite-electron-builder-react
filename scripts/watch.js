@@ -1,17 +1,14 @@
 #!/usr/bin/env node
 
-const {createServer, build, createLogger} = require('vite');
+const { createServer, build, createLogger } = require('vite');
 const electronPath = require('electron');
-const {spawn} = require('child_process');
-
+const { spawn } = require('child_process');
 
 /** @type 'production' | 'development'' */
-const mode = process.env.MODE = process.env.MODE || 'development';
-
+const mode = (process.env.MODE = process.env.MODE || 'development');
 
 /** @type {import('vite').LogLevel} */
 const LOG_LEVEL = 'info';
-
 
 /** @type {import('vite').InlineConfig} */
 const sharedConfig = {
@@ -31,27 +28,29 @@ const stderrFilterPatterns = [
 ];
 
 /**
+ *
  * @param {{name: string; configFile: string; writeBundle: import('rollup').OutputPlugin['writeBundle'] }} param0
+ * @returns {import('rollup').RollupWatcher}
  */
-const getWatcher = ({name, configFile, writeBundle}) => {
+const getWatcher = ({ name, configFile, writeBundle }) => {
   return build({
     ...sharedConfig,
     configFile,
-    plugins: [{name, writeBundle}],
+    plugins: [{ name, writeBundle }],
   });
 };
 
-
 /**
  * Start or restart App when source files are changed
- * @param {{config: {server: import('vite').ResolvedServerOptions}}} ResolvedServerOptions
+ * @param {import('vite').ViteDevServer} viteDevServer
+ * @returns {Promise<import('vite').RollupOutput | Array<import('vite').RollupOutput> | import('vite').RollupWatcher>}
  */
-const setupMainPackageWatcher = ({config: {server}}) => {
-  // Create VITE_DEV_SERVER_URL environment variable to pass it to the main process.
+const setupMainPackageWatcher = (viteDevServer) => {
+  // Write a value to an environment variable to pass it to the main process.
   {
-    const protocol = server.https ? 'https:' : 'http:';
-    const host = server.host || 'localhost';
-    const port = server.port; // Vite searches for and occupies the first free port: 3000, 3001, 3002 and so on
+    const protocol = `http${viteDevServer.config.server.https ? 's' : ''}:`;
+    const host = viteDevServer.config.server.host || 'localhost';
+    const port = viteDevServer.config.server.port; // Vite searches for and occupies the first free port: 3000, 3001, 3002 and so on
     const path = '/';
     process.env.VITE_DEV_SERVER_URL = `${protocol}//${host}:${port}${path}`;
   }
@@ -68,43 +67,43 @@ const setupMainPackageWatcher = ({config: {server}}) => {
     configFile: 'packages/main/vite.config.js',
     writeBundle() {
       if (spawnProcess !== null) {
-        spawnProcess.off('exit', process.exit);
         spawnProcess.kill('SIGINT');
         spawnProcess = null;
       }
 
       spawnProcess = spawn(String(electronPath), ['.']);
 
-      spawnProcess.stdout.on('data', d => d.toString().trim() && logger.warn(d.toString(), {timestamp: true}));
-      spawnProcess.stderr.on('data', d => {
+      spawnProcess.stdout.on(
+        'data',
+        (d) => d.toString().trim() && logger.warn(d.toString(), { timestamp: true }),
+      );
+      spawnProcess.stderr.on('data', (d) => {
         const data = d.toString().trim();
         if (!data) return;
         const mayIgnore = stderrFilterPatterns.some((r) => r.test(data));
         if (mayIgnore) return;
         logger.error(data, { timestamp: true });
       });
-
-      // Stops the watch script when the application has been quit
-      spawnProcess.on('exit', process.exit);
     },
   });
 };
 
-
 /**
  * Start or restart App when source files are changed
- * @param {{ws: import('vite').WebSocketServer}} WebSocketServer
+ * @param {import('vite').ViteDevServer} viteDevServer
+ * @returns {Promise<import('vite').RollupOutput | Array<import('vite').RollupOutput> | import('vite').RollupWatcher>}
  */
-const setupPreloadPackageWatcher = ({ws}) =>
-  getWatcher({
+const setupPreloadPackageWatcher = (viteDevServer) => {
+  return getWatcher({
     name: 'reload-page-on-preload-package-change',
     configFile: 'packages/preload/vite.config.js',
     writeBundle() {
-      ws.send({
+      viteDevServer.ws.send({
         type: 'full-reload',
       });
     },
   });
+};
 
 (async () => {
   try {

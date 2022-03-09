@@ -1,5 +1,6 @@
-import {chrome} from '../../.electron-vendors.cache.json';
-import {builtinModules} from 'module';
+import { defineConfig } from 'vite';
+import { chrome } from '../../.electron-vendors.cache.json';
+import { builtinModules } from 'module';
 
 const PACKAGE_ROOT = __dirname;
 
@@ -7,7 +8,7 @@ const PACKAGE_ROOT = __dirname;
  * @type {import('vite').UserConfig}
  * @see https://vitejs.dev/config/
  */
-const config = {
+export default defineConfig(() => ({
   mode: process.env.MODE,
   root: PACKAGE_ROOT,
   envDir: process.cwd(),
@@ -22,10 +23,7 @@ const config = {
       formats: ['cjs'],
     },
     rollupOptions: {
-      external: [
-        'electron',
-        ...builtinModules.flatMap(p => [p, `node:${p}`]),
-      ],
+      external: ['electron', ...builtinModules.flatMap((p) => [p, `node:${p}`])],
       output: {
         entryFileNames: '[name].cjs',
       },
@@ -33,6 +31,4 @@ const config = {
     emptyOutDir: true,
     brotliSize: false,
   },
-};
-
-export default config;
+}));
