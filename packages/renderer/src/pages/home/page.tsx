@@ -1,34 +1,10 @@
-import { useCallback, useMemo, useState } from 'react';
+import { ReactiveHash, ReactiveCounter } from '../../components';
 
 const aStyle: React.CSSProperties = {
   color: '#42b983',
 };
 
-const fieldSetStyle: React.CSSProperties = {
-  margin: '2rem',
-  padding: '1rem',
-};
-
 export const Home = (): JSX.Element => {
-  const [count, setCount] = useState<number>(0);
-  const [rawString, setRawString] = useState<string>('HelloWorld');
-
-  const onCountClicked = useCallback(() => {
-    setCount(count + 1);
-  }, [count]);
-
-  const onInputChange = useCallback(
-    (event) => {
-      setRawString(event.target.value);
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [rawString],
-  );
-
-  const hashedString = useMemo(() => {
-    return window.nodeCrypto.sha256sum(rawString);
-  }, [rawString]);
-
   return (
     <div>
       <p>
@@ -61,26 +37,12 @@ export const Home = (): JSX.Element => {
         </a>
       </p>
 
-      <fieldset style={fieldSetStyle}>
-        <legend>Test React Reactivity</legend>
-        <button onPointerUp={onCountClicked}>count is: {count}</button>
-      </fieldset>
+      <ReactiveCounter />
 
-      <fieldset style={fieldSetStyle}>
-        <legend>Test Node.js API</legend>
-        <label>
-          Raw value
-          <input value={rawString} type="text" onChange={onInputChange} />
-        </label>
-        <br />
-        <label>
-          Hashed by node:crypto
-          <input value={hashedString} type="text" readOnly={true} />
-        </label>
-      </fieldset>
+      <ReactiveHash />
 
       <p>
-        Edit <code>renderer/src/components/home.tsx</code> to test hot module replacement.
+        Edit <code>renderer/src/pages/home/page.tsx</code> to test hot module replacement.
       </p>
     </div>
   );

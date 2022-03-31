@@ -21,5 +21,12 @@
     "../../types/**/*.d.ts",
     "../preload/contracts.d.ts"
   ],
-  "exclude": ["**/*.spec.ts", "**/*.test.ts", "*.config.js", "dist"]
+  "exclude": [
+    "**/*.spec.ts",
+    "**/*.spec.tsx",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "*.config.js",
+    "dist"
+  ]
 }

@@ -15,6 +15,7 @@ export const App = (): JSX.Element => {
         <Navigation />
         <Routes>
           <Route path="/" element={<Home />} />
+
           <Route
             path="/about"
             element={
@@ -23,6 +24,7 @@ export const App = (): JSX.Element => {
               </Suspense>
             }
           />
+
           <Route path="*" element={<Home />} />
         </Routes>
       </Router>
