@@ -1,4 +1,4 @@
-if (process.env.VITE_APP_VERSION === undefined) {
+if (process.env.VITE_APP_VERSION === undefined || !Number.isInteger(process.env.VITE_APP_VERSION)) {
   const now = new Date();
   process.env.VITE_APP_VERSION = `${now.getUTCFullYear() - 2000}.${
     now.getUTCMonth() + 1
