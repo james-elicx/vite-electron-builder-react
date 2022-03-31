@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       release-note: ${{ steps.release-note.outputs.release-note }}
-      version: ${{ steps.version.outputs.version-without-v }}
+      version: ${{ steps.version.outputs.build-version }}
 
     steps:
       - uses: actions/checkout@v2
@@ -50,7 +50,7 @@ jobs:
 
       - name: Get version from current date
         id: version
-        uses: battila7/get-version-action@v2
+        run: echo "::set-output name=build-version::$(node -e "try{console.log(require('./.electron-builder.config.js').extraMetadata.version)}catch(e){console.error(e);process.exit(1)}")"
 
       - name: Waiting on All checks
         uses: lewagon/wait-on-check-action@v0.2
@@ -71,12 +71,15 @@ jobs:
         with:
           prerelease: true
           draft: true
-          tag_name: v${{ steps.version.outputs.version-without-v }}
-          name: v${{ steps.version.outputs.version-without-v }}
+          tag_name: v${{ steps.version.outputs.build-version }}
+          name: v${{ steps.version.outputs.build-version }}
           body: ${{ steps.release-note.outputs.release-note }}
 
   upload_artifacts:
     needs: [draft]
+
+    # Skip compile and release if commit message contains "[skip]" or "skip cd" or "cd skip"
+    if: ${{ !contains(github.event.head_commit.message, '[skip]') && !contains(github.event.head_commit.message, 'skip cd') && !contains(github.event.head_commit.message, 'cd skip') }}
 
     strategy:
       matrix:
@@ -139,7 +142,7 @@ jobs:
 
           # If the commit is tagged with a version (e.g. "v1.0.0"),
           # release the app after building
-          release: ${{ startsWith(github.ref, 'refs/tags/v') }}
+          release: true
 
           # Sometimes the build may fail due to a connection problem with Apple, GitHub, etc. servers.
           # This option will restart the build as many attempts as possible
