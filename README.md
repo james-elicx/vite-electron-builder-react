@@ -6,9 +6,30 @@ Based on [soulsam480](https://github.com/soulsam480)'s React fork of the Vite El
 
 Features changes to project structure, minor bug fixes, extra CI/CD functionality, more ESLint & Prettier, React, and Sass.
 
-### CI/CD
+## CI/CD
 
-Define which operating systems to build releases for in `.github/workflows/release.yml`.
+### Continuous Integration
+
+- For each push and pull-request, the workflow runs the following.
+
+  - Check the types.
+  - Check the code style.
+  - Run automatic tests using [Vitest][vitest].
+    - Unit tests are placed within each package and run separately.
+    - End-to-end tests are placed in the root [`tests`](tests) directory and use [playwright].
+
+### Continuous Delivery
+
+- The release workflow runs when you push to the `main` branch, creating a release draft.
+
+  - To skip the compile and release phase of the release workflow, your commit message to the main branch must include `[skip]` or `skip cd` or `cd skip`.
+  - Release versions are based on the current date and time using the format `yy.mm.dd-minutes`.
+  - Notes are generated using commit messages that occured since the last release.
+
+- [Code signing](#code-signing), [notarization](#notarization-macos), and [releasing to Snapcraft](#releasing-to-snapcraft-linux) are all supported. See below.
+- **Auto-update is supported**. After you publish the release, all client applications will download the new version and install updates silently.
+
+You can define which operating systems you want to build releases for in [`.github/workflows/release.yml`](.github/workflows/release.yml).
 
 ```yml
 strategy:
@@ -18,18 +39,16 @@ strategy:
     os: [windows-latest]
 ```
 
-To make a release, create a commit on the `main` branch with the version number. e.g. `v1.0.0`.
+#### Code Signing
 
-#### Building for Windows
-
-##### Code Signing
+##### Building for Windows
 
 1. Export your Extended Validation code signing certificate into a single file (e.g. `certs.p12`).
 2. Base64 encode your certificates with the `base64 -i certs.p12 -o encoded.txt` command.
 3. Define some secrets in the repository settings on GitHub.
    - `windows_certs` - Your encoded certificates, i.e. the content of the `encoded.txt` file you created before.
    - `windows_certs_password` - The password you set when exporting the certificates.
-4. Uncomment the Windows code signing certificate code in `.github/workflows/release.yml`.
+4. Uncomment the Windows code signing certificate code in [`.github/workflows/release.yml`](.github/workflows/release.yml).
 
 ```yml
 # Base64-encoded code signing certificate for Windows
@@ -39,16 +58,14 @@ windows_certs: ${{ secrets.windows_certs }}
 windows_certs_password: ${{ secrets.windows_certs_password }}
 ```
 
-#### Building for MacOS
-
-##### Code Signing
+##### Building for MacOS
 
 1. Export your code signing certificates from the Keychain Access app or the Apple Developer Portal into a single file (e.g. `certs.p12`).
 2. Base64 encode your certificates with the `base64 -i certs.p12 -o encoded.txt` command.
 3. Define some secrets in the repository settings on GitHub.
    - `mac_certs` - Your encoded certificates, i.e. the content of the `encoded.txt` file you created before.
    - `mac_certs_password` - The password you set when exporting the certificates.
-4. Uncomment the MacOS code signing certificate code in `.github/workflows/release.yml`.
+4. Uncomment the MacOS code signing certificate code in [`.github/workflows/release.yml`](.github/workflows/release.yml).
 
 ```yml
 # Base64-encoded code signing certificate for macOS
@@ -58,14 +75,14 @@ mac_certs: ${{ secrets.mac_certs }}
 mac_certs_password: ${{ secrets.mac_certs_password }}
 ```
 
-##### Notarization
+#### Notarization (MacOS)
 
 1. Create an [API key](https://appstoreconnect.apple.com/access/api) with the `App Manager` access permissions and download the key file.
 2. Define some secrets in the repository settings on GitHub.
    - `apple_api_key` - Content of the API key file (with the p8 file extension).
    - `apple_api_key_id` - Key ID found on App Store Connect.
    - `apple_api_key_issuer_id` - Issuer ID found on App Store Connect.
-3. Uncomment the MacOS notarization code in `.github/workflows/release.yml`.
+3. Uncomment the MacOS notarization code in [`.github/workflows/release.yml`](.github/workflows/release.yml).
 
 ```yml
 # If building a release for macos, need to do notarization.
@@ -83,14 +100,12 @@ API_KEY_ID: ${{ secrets.apple_api_key_id }}
 API_KEY_ISSUER_ID: ${{ secrets.apple_api_key_issuer_id }}
 ```
 
-#### Building for Linux
-
-##### Releasing to Snapcraft
+#### Releasing to Snapcraft (Linux)
 
 1. Retrieve a Snapcraft token by following the steps [here](https://github.com/samuelmeuli/action-snapcraft).
 2. Define some secrets in the repository settings on GitHub.
    - `snapcraft_token` - Snapcraft token retrieved in the previous step.
-3. Uncomment the Snapcraft code in `.github/workflows/release.yml`.
+3. Uncomment the Snapcraft code in [`.github/workflows/release.yml`](.github/workflows/release.yml).
 
 ```yml
 # If releasing Linux app to Snapcraft, install and sign in.
